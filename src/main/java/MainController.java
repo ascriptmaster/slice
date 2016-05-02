@@ -4,6 +4,8 @@
 import com.google.gson.Gson;
 
 import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static spark.Spark.get;
 
@@ -14,19 +16,25 @@ public class MainController {
 
         WordInstanceCounter count = new WordInstanceCounter();
 
+        Lock mainLock = new ReentrantLock();
+
         get("/", (req, res) -> {
+            mainLock.lock();
             String name = req.queryParams("name");
             Gson gson = new Gson();
+            String result;
             if (name == null) {
-                return "{\"error\": \"No Name Supplied\"}";
+                result = "{\"error\": \"No Name Supplied\"}";
             } else if (success) {
                 HashMap<String, Number> response = new HashMap<String, Number>();
                 response.put("timesCalled", count.logWord(name));
                 response.put("foundInstances", words.getCount(name));
-                return gson.toJson(response);
+                result = gson.toJson(response);
             } else {
-                return "{\"error\": \"Data Loading Failure\"}";
+                result = "{\"error\": \"Data Loading Failure\"}";
             }
+            mainLock.unlock();
+            return result;
         });
     }
 }
