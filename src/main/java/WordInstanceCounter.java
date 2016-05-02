@@ -10,7 +10,7 @@ public class WordInstanceCounter {
         counter = new ConcurrentHashMap<String, Number>();
     }
 
-    public int logWord(String word) {
+    public synchronized int logWord(String word) {
         word = word.toLowerCase();
         Number count = counter.get(word);
         if (count == null) {
